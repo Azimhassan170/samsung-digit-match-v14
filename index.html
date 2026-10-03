@@ -8,7 +8,6 @@
         body { font-family: sans-serif; background: #0f172a; color: #fff; padding: 20px; margin: 0; }
         .card { background: #1e293b; padding: 20px; border-radius: 12px; max-width: 400px; margin: auto; text-align: center; }
         .btn { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-login { background: #2563eb; color: white; }
         .btn-logout { background: #ef4444; color: white; }
         .status { margin-bottom: 15px; font-size: 14px; text-align: left; }
     </style>
@@ -29,9 +28,10 @@
 
     <script>
         const API_TOKEN = 'pat_a8009a8d59bc5264a86fcc94883448facbc2f32bf9ec507fc0fb1227d2a0e075';
-        const APP_ID = 1089;
+        const APP_ID = '1089';
 
         function connectWebSocket() {
+            // Official Production WebSocket Server
             const ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
 
             ws.onopen = () => {
@@ -43,9 +43,8 @@
 
                 if (data.msg_type === 'authorize') {
                     if (data.error) {
-                        document.getElementById('conn-status').innerText = 'Connection Failed ❌';
+                        document.getElementById('conn-status').innerText = 'Invalid Token ❌';
                         document.getElementById('conn-status').style.color = '#ef4444';
-                        alert('Error: ' + data.error.message);
                         return;
                     }
 
@@ -58,9 +57,14 @@
                 }
             };
 
-            ws.onerror = () => {
-                document.getElementById('conn-status').innerText = 'Connection Error';
+            ws.onerror = (err) => {
+                console.error('WS Error:', err);
+                document.getElementById('conn-status').innerText = 'Connection Error ❌';
                 document.getElementById('conn-status').style.color = '#ef4444';
+            };
+
+            ws.onclose = () => {
+                console.log('Connection closed');
             };
         }
 
