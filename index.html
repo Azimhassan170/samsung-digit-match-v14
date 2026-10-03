@@ -1,119 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Samsung Digit Match V14</title>
-  <style>
-    body { font-family: sans-serif; background: #0f172a; color: #fff; padding: 20px; margin: 0; }
-    .card { background: #1e293b; padding: 20px; border-radius: 12px; max-width: 480px; margin: auto; text-align: center; }
-    .btn { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .btn-login { background: #2563eb; color: white; }
-    .btn-logout { background: #ef4444; color: white; }
-    .status { margin-bottom: 15px; font-size: 14px; text-align: left; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samsung Digit Match V14</title>
+    <style>
+        body { font-family: sans-serif; background: #0f172a; color: #fff; padding: 20px; margin: 0; }
+        .card { background: #1e293b; padding: 20px; border-radius: 12px; max-width: 400px; margin: auto; text-align: center; }
+        .btn { width: 100%; padding: 12px; margin-top: 10px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .btn-login { background: #2563eb; color: white; }
+        .btn-logout { background: #ef4444; color: white; }
+        .status { margin-bottom: 15px; font-size: 14px; text-align: left; }
+    </style>
 </head>
 <body>
 
-  <div class="card">
-    <h2>Samsung Digit Match V14</h2>
-    
-    <div class="status">
-      Status: <b id="conn-status" style="color: #f59e0b;">Not Connected</b><br>
-      Account: <b id="acc-id">-</b><br>
-      Balance: <b id="acc-balance">-</b>
+    <div class="card">
+        <h2>Samsung Digit Match V14</h2>
+
+        <div class="status">
+            Status: <b id="conn-status" style="color: #f59e0b;">Not Connected</b><br>
+            Account: <b id="acc-id">-</b><br>
+            Balance: <b id="acc-balance">-</b>
+        </div>
+
+        <button id="login-btn" class="btn btn-login" onclick="loginWithDeriv()">LOGIN TO ACCOUNT</button>
+        <button id="logout-btn" class="btn btn-logout" onclick="logout()" style="display: none;">LOGOUT</button>
     </div>
 
-    <button id="login-btn" class="btn btn-login" onclick="loginWithDeriv()">LOGIN TO ACCOUNT</button>
-    <button id="logout-btn" class="btn btn-logout" onclick="logout()" style="display:none;">LOGOUT</button>
-  </div>
+    <script>
+        // Deriv Configuration
+        const APP_ID = '1089';
+        const REDIRECT_URI = window.location.origin + window.location.pathname;
 
-  <script>
-    // Deriv Configuration
-    const APP_ID = '1089';
-    const REDIRECT_URI = window.location.origin + window.location.pathname;
-
-    function loginWithDeriv() {
-        const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&brand=deriv&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-        window.location.href = authUrl;
-    }
-
-    function checkOAuth() {
-        const params = new URLSearchParams(window.location.search);
-        const token = params.get('token1');
-        const acct = params.get('acct1');
-
-        if (token) {
-            localStorage.setItem('deriv_token', token);
-            if (acct) localStorage.setItem('deriv_account', acct);
-            window.history.replaceState({}, document.title, window.location.pathname);
+        function loginWithDeriv() {
+            const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&brand=deriv&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+            window.location.href = authUrl;
         }
 
-        connectWebSocket();
-    }
+        function checkOAuth() {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token1');
+            const acct = params.get('acct1');
 
-    function connectWebSocket() {
-        const token = localStorage.getItem('deriv_token');
-
-        if (!token) {
-            document.getElementById('conn-status').innerText = 'Not Connected';
-            return;
-        }
-
-        document.getElementById('conn-status').innerText = 'Connecting...';
-        const ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
-
-        ws.onopen = () => {
-            ws.send(JSON.stringify({ authorize: token }));
-        };
-
-        ws.onmessage = (msg) => {
-            const data = JSON.parse(msg.data);
-
-            if (data.msg_type === 'authorize') {
-                if (data.error) {
-                    alert('Login failed: ' + data.error.message);
-                    logout();
-                    return;
-                }
-
-                document.getElementById('conn-status').innerText = 'Connected ✅';
-                document.getElementById('conn-status').style.color = '#10b981';
-                document.getElementById('acc-id').innerText = data.authorize.loginid;
-                document.getElementById('acc-balance').innerText = `${data.authorize.balance} ${data.authorize.currency}`;
-
-                document.getElementById('login-btn').style.display = 'none';
-                document.getElementById('logout-btn').style.display = 'inline-block';
+            if (token) {
+                localStorage.setItem('deriv_token', token);
+                if (acct) localStorage.setItem('deriv_account', acct);
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
-        };
-    }
 
-    function logout() {
-        localStorage.removeItem('deriv_token');
-        localStorage.removeItem('deriv_account');
-        window.location.reload();
-    }
-
-    // Initialize on page load
-    window.onload = checkOAuth;
-</script>
-
-          ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+            connectWebSocket();
         }
 
-        if (data.msg_type === 'balance' && data.balance) {
-          document.getElementById('acc-balance').innerText = `${data.balance.balance} ${data.balance.currency}`;
+        function connectWebSocket() {
+            const token = localStorage.getItem('deriv_token');
+
+            if (!token) {
+                document.getElementById('conn-status').innerText = 'Not Connected';
+                return;
+            }
+
+            document.getElementById('conn-status').innerText = 'Connecting...';
+            const ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ authorize: token }));
+            };
+
+            ws.onmessage = (msg) => {
+                const data = JSON.parse(msg.data);
+
+                if (data.msg_type === 'authorize') {
+                    if (data.error) {
+                        alert('Login failed: ' + data.error.message);
+                        logout();
+                        return;
+                    }
+
+                    document.getElementById('conn-status').innerText = 'Connected ✅';
+                    document.getElementById('conn-status').style.color = '#10b981';
+                    document.getElementById('acc-id').innerText = data.authorize.loginid;
+                    document.getElementById('acc-balance').innerText = `${data.authorize.balance} ${data.authorize.currency}`;
+
+                    document.getElementById('login-btn').style.display = 'none';
+                    document.getElementById('logout-btn').style.display = 'inline-block';
+                }
+            };
         }
-      };
-    }
 
-    function logout() {
-      localStorage.removeItem('deriv_token');
-      localStorage.removeItem('deriv_account');
-      window.location.reload();
-    }
+        function logout() {
+            localStorage.removeItem('deriv_token');
+            localStorage.removeItem('deriv_account');
+            window.location.reload();
+        }
 
-    document.addEventListener('DOMContentLoaded', checkOAuth);
-  </script>
+        // Initialize on page load
+        window.onload = checkOAuth;
+    </script>
 </body>
 </html>
