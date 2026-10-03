@@ -29,12 +29,11 @@
     </div>
 
     <script>
-        // Deriv Configuration
         const APP_ID = '1089';
-        const REDIRECT_URI = window.location.origin + window.location.pathname;
 
         function loginWithDeriv() {
-            const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&brand=deriv&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+            const redirectUrl = window.location.origin + window.location.pathname;
+            const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUrl)}`;
             window.location.href = authUrl;
         }
 
@@ -94,7 +93,6 @@
             window.location.reload();
         }
 
-        // Initialize on page load
         window.onload = checkOAuth;
     </script>
 </body>
