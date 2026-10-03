@@ -34,54 +34,69 @@
     const REDIRECT_URI = window.location.origin + window.location.pathname;
 
     function loginWithDeriv() {
-    const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&brand=deriv&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+        const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&brand=deriv&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+        window.location.href = authUrl;
+    }
 
     function checkOAuth() {
-      const params = new URLSearchParams(window.location.search);
-      const token = params.get('token1');
-      const acct = params.get('acct1');
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token1');
+        const acct = params.get('acct1');
 
-      if (token) {
-        localStorage.setItem('deriv_token', token);
-        if (acct) localStorage.setItem('deriv_account', acct);
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
+        if (token) {
+            localStorage.setItem('deriv_token', token);
+            if (acct) localStorage.setItem('deriv_account', acct);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
 
-      connectWebSocket();
+        connectWebSocket();
     }
 
     function connectWebSocket() {
-      const token = localStorage.getItem('deriv_token');
+        const token = localStorage.getItem('deriv_token');
 
-      if (!token) {
-        document.getElementById('conn-status').innerText = 'Not Connected';
-        return;
-      }
-
-      document.getElementById('conn-status').innerText = 'Connecting...';
-      const ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
-
-      ws.onopen = () => {
-        ws.send(JSON.stringify({ authorize: token }));
-      };
-
-      ws.onmessage = (msg) => {
-        const data = JSON.parse(msg.data);
-
-        if (data.msg_type === 'authorize') {
-          if (data.error) {
-            alert('Login failed: ' + data.error.message);
-            logout();
+        if (!token) {
+            document.getElementById('conn-status').innerText = 'Not Connected';
             return;
-          }
+        }
 
-          document.getElementById('conn-status').innerText = 'Connected ✅';
-          document.getElementById('conn-status').style.color = '#10b981';
-          document.getElementById('acc-id').innerText = data.authorize.loginid;
-          document.getElementById('acc-balance').innerText = `${data.authorize.balance} ${data.authorize.currency}`;
+        document.getElementById('conn-status').innerText = 'Connecting...';
+        const ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
 
-          document.getElementById('login-btn').style.display = 'none';
-          document.getElementById('logout-btn').style.display = 'block';
+        ws.onopen = () => {
+            ws.send(JSON.stringify({ authorize: token }));
+        };
+
+        ws.onmessage = (msg) => {
+            const data = JSON.parse(msg.data);
+
+            if (data.msg_type === 'authorize') {
+                if (data.error) {
+                    alert('Login failed: ' + data.error.message);
+                    logout();
+                    return;
+                }
+
+                document.getElementById('conn-status').innerText = 'Connected ✅';
+                document.getElementById('conn-status').style.color = '#10b981';
+                document.getElementById('acc-id').innerText = data.authorize.loginid;
+                document.getElementById('acc-balance').innerText = `${data.authorize.balance} ${data.authorize.currency}`;
+
+                document.getElementById('login-btn').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'inline-block';
+            }
+        };
+    }
+
+    function logout() {
+        localStorage.removeItem('deriv_token');
+        localStorage.removeItem('deriv_account');
+        window.location.reload();
+    }
+
+    // Initialize on page load
+    window.onload = checkOAuth;
+</script>
 
           ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
         }
