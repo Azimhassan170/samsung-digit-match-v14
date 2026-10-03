@@ -29,19 +29,17 @@
     </div>
 
     <script>
-        // Aapka Registered App Client ID
-        const CLIENT_ID = '34zq8T9vza4daB9H3ahzA';
+        const APP_ID = '1089';
 
         function loginWithDeriv() {
             const redirectUrl = window.location.origin + window.location.pathname;
-            // Updated OAuth URL with client_id and response_type
-            const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${CLIENT_ID}&client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(redirectUrl)}`;
+            const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&redirect_uri=${encodeURIComponent(redirectUrl)}`;
             window.location.href = authUrl;
         }
 
         function checkOAuth() {
             const params = new URLSearchParams(window.location.search);
-            const token = params.get('token1') || params.get('code');
+            const token = params.get('token1');
             const acct = params.get('acct1');
 
             if (token) {
@@ -62,7 +60,7 @@
             }
 
             document.getElementById('conn-status').innerText = 'Connecting...';
-            const ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${CLIENT_ID}`);
+            const ws = new WebSocket(`wss://ws.derivws.com/websockets/v3?app_id=${APP_ID}`);
 
             ws.onopen = () => {
                 ws.send(JSON.stringify({ authorize: token }));
