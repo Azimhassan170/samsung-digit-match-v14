@@ -34,9 +34,7 @@
     const REDIRECT_URI = window.location.origin + window.location.pathname;
 
     function loginWithDeriv() {
-      const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&brand=deriv&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
-      window.location.href = authUrl;
-    }
+    const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${APP_ID}&l=en&brand=deriv&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
 
     function checkOAuth() {
       const params = new URLSearchParams(window.location.search);
